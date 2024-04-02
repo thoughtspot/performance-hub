@@ -32,7 +32,6 @@ export default function SalesTab(props: { tsURL: string; TSRestFilter: any }){
                 setData(data.contents[0].data_rows)
         })
     },[TSRestFilter])
-    console.log("sales data",data)
 
     let variance: number = 0;
     if(data) variance = Math.round(Number(data[0][0]) * 10000)/10;

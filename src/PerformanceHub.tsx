@@ -35,6 +35,7 @@ import { link } from 'fs';
 import BrowsePage from './Browse';
 import { servicesVersion } from 'typescript';
 import { CustomActionPayload } from '@thoughtspot/visual-embed-sdk/lib/src/types';
+import { StoreDetails } from './tabs/StoreDetail';
 
 enum SelectedRole {
     ADMIN = 'Admin',
@@ -48,6 +49,7 @@ export enum SelectedTab {
     SALES = 'Sales Insights',
     CUSTOMER = 'Customer Insights',
     STORE = 'Store Insights',
+    STOREDETAILS = 'Store Details',
     CATEGORY = 'Category Insights',
     MY = "My Liveboards",
 }
@@ -88,6 +90,8 @@ const PerformanceHub = (props: TabViewProps) =>{
     const [brandFilterValue, setBrandFilterValue] = useState([])
     const [brandTSFilter, setBrandTSFilter] = useState({})
     const [brandFilterOptions, setBrandFilterOptions] = useState<any[]>([])
+
+    const [selectedStore, setSelectedStore] = useState<string>('');
 
     const [selectedRole, setSelectedRole] = useState(SelectedRole.ADMIN);
     const [showRoleSelector, setShowRoleSelector] = useState(false);
@@ -138,6 +142,11 @@ const PerformanceHub = (props: TabViewProps) =>{
 
     },[])
     useEffect(()=>{
+        if (embedRef.current){
+            embedRef.current.on(EmbedEvent.CustomAction, onCustomAction)
+        }
+    },[embedRef])
+    useEffect(()=>{
         if (showNewViz){
             ref.current.style.display = 'none'
             searchRef.current.style.display = 'flex'
@@ -148,7 +157,7 @@ const PerformanceHub = (props: TabViewProps) =>{
         }
     },[showNewViz])
     useEffect(()=>{
-        if (myLiveboardId){
+        if (myLiveboardId && embedRef.current && embedRef.current.getUnderlyingFrameElement()){
             ref.current.style.display = 'flex'
             searchRef.current.style.display = 'none';
             embedRef.current.navigateToLiveboard(myLiveboardId);
@@ -159,7 +168,7 @@ const PerformanceHub = (props: TabViewProps) =>{
     useEffect(()=>{
         if (!embedRef.current || !ref.current) return
         searchRef.current.style.display = 'none'
-        if (selectedTab == SelectedTab.ALL || (selectedTab == SelectedTab.MY && myLiveboardId == null)){
+        if (selectedTab == SelectedTab.ALL || selectedTab==SelectedTab.STOREDETAILS || (selectedTab == SelectedTab.MY && myLiveboardId == null)){
             ref.current.style.display = 'none'
         }else{
             ref.current.style.display = 'flex'
@@ -184,7 +193,9 @@ const PerformanceHub = (props: TabViewProps) =>{
         }
         
         //@ts-ignore
-        embedRef.current.navigateToLiveboard(liveboardId);
+        if (embedRef.current && embedRef.current.getUnderlyingFrameElement()){
+            embedRef.current.navigateToLiveboard(liveboardId);
+        }
     },[selectedTab])
 
     useEffect(()=>{
@@ -207,7 +218,12 @@ const PerformanceHub = (props: TabViewProps) =>{
         });
 
     }
-
+    function onCustomAction(e: any){
+        if (e.data.id == 'store-details'){
+            setSelectedStore(e.data.contextMenuPoints.selectedPoints[0].selectedAttributes[0].value)
+            setSelectedTab(SelectedTab.STOREDETAILS)
+        }
+    }
     function OnPin(){
         if (myLiveboardId){
             //embedRef.current.prerenderGeneric();
@@ -426,7 +442,9 @@ const PerformanceHub = (props: TabViewProps) =>{
                 {/* <Input borderRadius={20} width={350} borderColor="blue" backgroundColor={'#ffffff'}></Input> */}
             </div>
 
-
+            {selectedTab == SelectedTab.STOREDETAILS && (
+                <StoreDetails tsURL={tsURL} selectedStore={selectedStore}></StoreDetails>
+            )}
             {selectedTab==SelectedTab.ALL && (
             <div className='p-2'></div>
             )}

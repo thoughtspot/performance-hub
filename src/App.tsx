@@ -40,12 +40,8 @@ function App() {
       }
   }
   
-  }).on(AuthStatus.SUCCESS, (data)=>{
-    getSessionInfo().then((session)=>{
-      console.log(session,"sess")
-    })
-
-  });
+  })
+  
   return (
     <div className="App">
       <div className='flex flex-row align-start items-center pl-4 h-16 w-full bg-slate-600 text-white text-2xl font-bold'>
